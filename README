@@ -1,0 +1,26 @@
+                         __         _ _         _         _      
+ __ _ _ _ _ __ _  _ ___ / _|_____ _(_) |_ _ ___| |__  ___| |_ ___
+/ _` | '_| '  \ || / _ \  _/ -_) V / | | '_/ _ \ '_ \/ _ \  _(_-<
+\__,_|_| |_|_|_\_, \___/_| \___|\_/|_|_|_| \___/_.__/\___/\__/__/
+               |__/                                              
+
+shitty little splash generator.
+
+
+Usage: mksplash [options] region:url url url region:url ...
+	where a region is the template location to put the posts in,
+	defaulting to 'default'. Each url is an rss feed full of posts.
+
+
+Options:
+  -h, --help            show this help message and exit
+  -o OUTFILE, --output=OUTFILE
+                        File to write
+  -v, --verbose         DEBUG to STDOUT
+  -d DEPTH, --depth=DEPTH
+                        Max number of posts per url.
+  -l LENGTH, --length=LENGTH
+                        Max number of characters per url (truncates at
+                        whitespace).
+  -t TEMPLATES, --templates=TEMPLATES
+                        Location to search for template files.

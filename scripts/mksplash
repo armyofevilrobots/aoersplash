@@ -1,0 +1,96 @@
+#!python
+
+from aoersplash.splashgenerator import SplashGenerator
+from optparse import OptionParser
+import logging
+import os.path
+import re
+
+
+#feeds = ['http://exanimostly.com/rss.xml',
+    #'http://armyofevilrobots.com/rss.xml']
+
+def parse_feeds(feeds):
+    """Parse a string of the following type:
+        location,url
+        ie:
+        thebottomfolderlocation,http://url.of.my/rss.xml
+       and return a dict of location:[url1,url2,url3]
+        """
+    out = {'default' : [ ]}
+    for feed in feeds:
+        logging.debug("Parsing: %s", feed)
+        target = 'default'
+        while True:
+            logging.debug("Trying to split: %s", feed)
+            if re.match('https?:\/\/', feed):
+                out[target].append(feed)
+                break
+            elif feed == '':
+                break
+            else:
+                try:
+                    target, feed = feed.split(',', 1)
+                except:
+                    continue
+                if not target in out:
+                    out[target] = [ ]
+    return out
+        
+
+def main(argv):
+    FORMAT = '%(asctime)-15s %(message)s'
+    logging.basicConfig(format=FORMAT)
+    parser = OptionParser(usage = "usage: %prog [options] region:url url url region:url ...\n"
+            "\twhere a region is the template location to put the posts in,\n"
+            "\tdefaulting to 'default'. Each url is an rss feed full of posts.\n")
+
+    parser.add_option('-o', '--output', dest = 'outfile', 
+            default = os.path.abspath('index.html'), help = "File to write")
+    parser.add_option('-v', '--verbose', dest = 'verbose',
+            default = False, action = 'store_true', help = "DEBUG to STDOUT")
+    parser.add_option('-d', '--depth', dest = 'depth', type='int',
+            default = 5, help = "Max number of posts per url.")
+    parser.add_option('-l', '--length', dest = 'length', type='int',
+            default = 5, help = "Max number of characters per url "
+            "(truncates at whitespace).")
+    parser.add_option('-t', '--templates', dest = 'templates',
+            default = os.path.join(os.path.dirname(__file__), 
+                '..', 'aoersplash', 'templates'),
+            help = "Location to search for template files.")
+
+
+    options, args = parser.parse_args(argv)
+    logger = logging.getLogger()
+    if options.verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.WARN)
+
+    if not os.path.isdir(os.path.dirname(options.outfile)):
+        logging.error("Invalid output dir %s", options.outfile)
+        raise IOError, "Invalid output folder."
+    if not os.path.isdir(options.templates):
+        logging.error("Invalid template dir %s", 
+                os.path.abspath(options.templates))
+        raise IOError, "Invalid templates folder."
+    logging.debug("Writing to %s", options.outfile)
+    logging.debug("Using %s as template path.", 
+            os.path.abspath(options.templates))
+
+    feeds = parse_feeds(args[1:])
+    logging.debug("Feeds are %s", feeds)
+
+    sg = SplashGenerator(
+            options.outfile, 
+            depth = options.depth, 
+            characters = options.length,
+            feeds = feeds)
+    sg.run()
+
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)
+
+# vim: ft=python:
